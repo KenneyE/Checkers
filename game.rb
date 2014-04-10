@@ -2,7 +2,9 @@ require 'debugger'
 load './piece.rb'
 load './board.rb'
 
-class InvalidInputError < RuntimeError; end
+class InvalidInputError < RuntimeError
+  "Invalid input"
+end
 
 class Checkers
 
@@ -22,13 +24,13 @@ class Checkers
 
   def play
     self.board = Board.new
-    self.board.display_board
 
     until false #game_over? || quit?
+      self.board.display_board
       color = swap_color
 
-      from, to = get_move(color)
-      board.move_pieces(moves)
+      move = get_move(color)
+      board.move_piece(move)
 
       swap_player
 
@@ -57,21 +59,21 @@ class Checkers
 
       valid_moves = self.board[from].valid_moves
       to = get_to(from, valid_moves)
-      return nil if quit?
+      # return nil if quit?
 
       return from, to
     end
 
     def get_from(color)
+      # debugger
       begin
         from = parse(prompt("Input starting square: "))
 
         raise InvalidInputError if self.board[from].nil? || self.board[from].color != color
         moves = self.board[from].valid_moves
         raise InvalidInputError if self.board[from].valid_moves.empty?
-        valid_from = true
-      rescue InvalidInputError
-        puts "Invalid input"
+      rescue InvalidInputError => e
+        puts e
         retry
       end
       from

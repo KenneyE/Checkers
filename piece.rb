@@ -14,22 +14,25 @@ class Piece
 
   def perform_jump(destination)
     jumps = valid_jumps
-    if jumps.has_key?(destination)
-      self.position = destination
-      self.board[jumps[destination]] = nil
-      maybe_promote
+ #    if jumps.has_key?(destination)
+     self.board[self.position] = nil
+     self.board[destination] = self
+     self.board[jumps[destination]] = nil
+     self.position = destination
+     maybe_promote
 
-      return true
-    end
-    false
+      # return true
+   #  end
+   #  false
   end
 
   def valid_jumps
+    # debugger
     valid_jumps = Hash.new { |h,k| h[k] = [] }
     direction.each do |long|
       [1, -1].each do |lat|
         move_pos = self.position.dup
-        jump_pos = [ long, lat ]
+        jump_pos = [ move_pos[0] + long, move_pos[1] + lat ]
         move_pos[0] += 2 * long
         move_pos[1] += 2 * lat
 
@@ -44,27 +47,29 @@ class Piece
   end
 
   def perform_slide(destination)
-    if valid_slides.include?(destination)
+    # if valid_slides.include?(destination)
+      self.board[self.position] = nil
+      self.board[destination] = self
       self.position = destination
       maybe_promote
 
-      return true
-    end
-    false
+    #   return true
+    # end
+    # false
   end
 
   def valid_slides
-    valid_slides = []
-    debugger
+    slides = []
+    # debugger
     direction.each do |long|
       [1, -1].each do |lat|
         move_pos = self.position.dup
         move_pos[0] += long
         move_pos[1] += lat
-        valid_slides << move_pos if self.board[move_pos].nil?
+        slides << move_pos if self.board[move_pos].nil?
       end
     end
-    valid_slides
+    slides
   end
 
   def valid_moves

@@ -24,13 +24,23 @@ class Board
     puts self.to_s
   end
 
+  def move_piece(move)
+    from, to = move[0], move[1]
+    piece = self[from]
+    if piece.valid_slides.include?(to)
+      piece.perform_slide(to)
+    elsif piece.valid_jumps.include?(to)
+      piece.perform_jump(to)
+    end
+  end
+
   def place_pieces
     [0, 2].each do |row|
       ROWS_0_AND_2.each do |col|
-        self[[row, col + 1]] = Piece.new(self, :black, [row, col])
-        self[[row + 1, col]] = Piece.new(self, :black, [row + 1, col + 1])
-        self[[8 - row, col + 1]] = Piece.new(self, :white, [8 - row, col])
-        self[[9 - row, col]] = Piece.new(self, :white, [9 - row, col + 1])
+        self[[row, col + 1]] = Piece.new(self, :black, [row, col + 1])
+        self[[row + 1, col]] = Piece.new(self, :black, [row + 1, col])
+        self[[8 - row, col + 1]] = Piece.new(self, :white, [8 - row, col + 1])
+        self[[9 - row, col]] = Piece.new(self, :white, [9 - row, col])
       end
     end
   end
