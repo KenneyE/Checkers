@@ -27,10 +27,15 @@ class Checkers
 
     until false #game_over? || quit?
       self.board.display_board
-      color = swap_color
 
-      move = get_move(color)
-      board.move_piece(move)
+      color = swap_color
+      begin
+        from, to = get_move(color)
+        board.move_piece(from, to)
+      rescue InvalidMoveError
+        puts "Invalid move"
+        retry
+      end
 
       swap_player
 
@@ -65,10 +70,11 @@ class Checkers
     end
 
     def get_from(color)
-      # debugger
       begin
-        from = parse(prompt("Input starting square: "))
+        # from = parse(prompt("Input starting square: ")).first
 
+        puts "Select piece"
+        from = get_moves.first
         raise InvalidInputError if self.board[from].nil? || self.board[from].color != color
         moves = self.board[from].valid_moves
         raise InvalidInputError if self.board[from].valid_moves.empty?
@@ -80,25 +86,74 @@ class Checkers
     end
 
     def get_to(from, valid_moves)
-      # debugger
+      # to = parse(prompt("Input end square: "))
+
+      puts "Select move chain. Press Enter when done."
+      to = get_moves
+    end
+
+    # def prompt(s)
+    #   puts(s)
+    #   return gets.chomp.strip.downcase
+    # end
+    #
+    # def parse(s)
+    #   moves = []
+    #   s.split(",").each do |move|
+    #     arr = [move.strip[0], move.strip[1..-1]]
+    #     return quit_game if arr[1] == "q"
+    #     raise "Invalid Input" unless INPUT_KEY.has_key?(arr[0])
+    #     raise "Invalid Input" unless (10 - Integer(arr[1])).between?(0,9)
+    #     moves << [ 10 - Integer(arr[1]),  INPUT_KEY[arr[0]]]
+    #   end
+    #   moves
+    # end
+
+    def get_moves
+      moves = []
+      loop do
+        input = get_key_press
+        if input == :enqueue
+          moves << self.board.cursor
+        elsif input == :return
+          moves << self.board.cursor
+          return moves
+        end
+      end
+      moves.uniq
+    end
+
+    def get_key
       begin
-        to = parse(prompt("Input end square: "))
-      end until valid_moves.include?(to)
-      to
+        system("stty raw -echo")
+        str = STDIN.getc
+      ensure
+        system("stty -raw echo")
+      end
+      str.chr
     end
 
-    def prompt(s)
-      puts(s)
-      return gets.chomp.strip.downcase
+
+    def get_key_press
+      k = get_key
+      case k
+      when 'a'
+        self.board.move_cursor(k)
+      when 's'
+        self.board.move_cursor(k)
+      when 'd'
+        self.board.move_cursor(k)
+      when 'w'
+        self.board.move_cursor(k)
+      when 'q'
+        self.quit = true
+      when " "
+        :enqueue
+      when "\r"
+        :return
+      end
     end
 
-    def parse(s)
-      arr = s.split("")
-      return quit_game if arr[1] == "q"
-      raise "Invalid Input" unless INPUT_KEY.has_key?(arr[0])
-      raise "Invalid Input" unless (10 - Integer(arr[1])).between?(0,9)
-      [ 10 - Integer(arr[1]),  INPUT_KEY[arr[0]]]
-    end
 
 
 end

@@ -1,14 +1,15 @@
-require './piece.rb'
+require 'colorize'
 
 class Board
 
   ROWS_0_AND_2 = 0.step(8, 2)
 
-  attr_accessor :squares
+  attr_accessor :squares, :cursor
 
-  def initialize
+  def initialize(init_board = true)
     @squares = Array.new(10) { Array.new( 10, nil ) }
-    place_pieces
+    place_pieces if init_board
+    @cursor = [0,0]
   end
 
   def [](pos)
@@ -24,14 +25,21 @@ class Board
     puts self.to_s
   end
 
-  def move_piece(move)
-    from, to = move[0], move[1]
-    piece = self[from]
-    if piece.valid_slides.include?(to)
-      piece.perform_slide(to)
-    elsif piece.valid_jumps.include?(to)
-      piece.perform_jump(to)
+  def get_pieces
+    self.squares.flatten.compact
+  end
+
+  def dup
+    dup_board = Board.new(false)
+    self.get_pieces.each do |piece|
+      new_piece = Piece.new(dup_board, piece.color, piece.position)
+      dup_board[new_piece.position] = new_piece
     end
+    dup_board
+  end
+
+  def move_piece(from, to)
+    self[from].perform_moves(from, to)
   end
 
   def place_pieces
@@ -46,20 +54,51 @@ class Board
   end
 
   def to_s
-    s = "  A B C D E F G H I J\n"
-    # debugger
+    s = ""
     self.squares.each_with_index do |row, i|
-      s += (10 - i).to_s + " "
+      s += "#{(10 - i)}"
+      s += " " unless i.zero?
+      # debugger
       row.each_with_index do |col, j|
-        if self[[i, j]].nil?
-          s += "- "
+
+        if self.cursor == [i,j]
+          background_color = :blue
+        elsif (i + j).even?
+          background_color = :red
         else
-          s += self[[i,j]].symbol + " "
+          background_color = :light_gray
+        end
+
+        if self[[i, j]].nil?
+          s += "   ".colorize(:background => background_color)
+        else
+          s += " #{self[[i,j]].symbol} ".colorize(:background => background_color)
         end
       end
       s += "\n"
     end
-    s
+    s += "   A  B  C  D  E  F  G  H  I  J\n"
   end
 
+  def move_cursor(dir)
+    pos = self.cursor.dup
+
+    case dir
+    when 'a'
+      pos[1] -= 1 unless pos[1] <= 0
+    when 's'
+      pos[0] += 1 unless pos[0] >= 9
+    when 'd'
+      pos[1] += 1 unless pos[1] >= 9
+    when 'w'
+      pos[0] -= 1 unless pos[0] <= 0
+    end
+
+    self.cursor = pos
+    self.display_board
+  end
+
+  def must_jump?(color)
+
+  end
 end
